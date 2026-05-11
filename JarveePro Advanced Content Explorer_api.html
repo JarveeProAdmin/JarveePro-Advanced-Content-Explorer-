@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Local API for ContentGeneration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f6f8fc;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            color: #1a2634;
+            padding: 2rem 1.5rem;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            padding: 2rem 2rem 3rem 2rem;
+        }
+
+        /* header */
+        .header {
+            border-bottom: 1px solid #e9edf2;
+            padding-bottom: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .title-section h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1e3c72, #2b4c7c);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+        .title-section p {
+            color: #4a5b6e;
+            margin-top: 0.25rem;
+            font-size: 0.95rem;
+        }
+        .badge {
+            background: #eef2ff;
+            padding: 0.3rem 0.9rem;
+            border-radius: 40px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1f4f8a;
+        }
+        .base-url {
+            background: #f0f2f5;
+            padding: 0.5rem 1.2rem;
+            border-radius: 60px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            border: 1px solid #dce3ec;
+        }
+
+        /* cards / sections */
+        .api-section {
+            margin-bottom: 2.5rem;
+            border-radius: 24px;
+            background: #ffffff;
+            border: 1px solid #eef2f8;
+            transition: box-shadow 0.2s;
+            overflow: hidden;
+        }
+        .api-section:hover {
+            box-shadow: 0 12px 24px -12px rgba(0, 0, 0, 0.1);
+        }
+        .section-header {
+            background: #fafcff;
+            padding: 1.2rem 1.8rem;
+            border-bottom: 1px solid #ecf1f7;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 1rem;
+        }
+        .method-badge {
+            background: #2c6e9e20;
+            color: #1f6392;
+            font-weight: 600;
+            padding: 0.2rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            letter-spacing: 0.3px;
+            border: 1px solid #cbdde9;
+        }
+        .endpoint {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background: #eef3fa;
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            color: #0a2942;
+        }
+        .function-name {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: #0c2d48;
+        }
+        .content {
+            padding: 1.3rem 1.8rem 1.8rem 1.8rem;
+        }
+        h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin: 1.2rem 0 0.6rem 0;
+            color: #2c3e4e;
+            display: inline-block;
+            border-left: 3px solid #2c7da0;
+            padding-left: 0.7rem;
+        }
+        h3:first-of-type {
+            margin-top: 0;
+        }
+        .param-table, .response-desc {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            background: #fefefe;
+            margin: 0.5rem 0 1rem 0;
+        }
+        .param-table th, .param-table td {
+            text-align: left;
+            padding: 0.7rem 0.8rem;
+            border-bottom: 1px solid #e9edf2;
+        }
+        .param-table th {
+            background-color: #f7f9fc;
+            font-weight: 600;
+            color: #2c4f6e;
+            width: 20%;
+        }
+        code {
+            background: #f0f3f8;
+            padding: 0.2rem 0.4rem;
+            border-radius: 8px;
+            font-family: 'SF Mono', 'Menlo', monospace;
+            font-size: 0.85rem;
+            color: #c7254e;
+        }
+        pre {
+            background: #1e2a36;
+            color: #eef4ff;
+            padding: 1rem;
+            border-radius: 16px;
+            overflow-x: auto;
+            font-size: 0.8rem;
+            line-height: 1.45;
+            margin: 0.75rem 0 1rem 0;
+            font-family: 'SF Mono', monospace;
+        }
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+            font-size: 0.8rem;
+        }
+        .example-response {
+            background: #f3f6fb;
+            border-left: 4px solid #6c9ebf;
+            padding: 0.8rem 1rem;
+            border-radius: 14px;
+            margin: 0.75rem 0;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #e2e8f0;
+            margin: 0.8rem 0;
+        }
+        .footnote {
+            font-size: 0.85rem;
+            color: #5f7d9c;
+            margin-top: 0.5rem;
+        }
+        .lang-switch {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            background: #f1f5f9;
+            padding: 0.3rem 0.8rem;
+            border-radius: 40px;
+        }
+        .lang-btn {
+            background: transparent;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0.25rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .lang-btn.active {
+            background: #2c7da0;
+            color: white;
+        }
+        .en-only, .zh-only {
+            transition: opacity 0.1s;
+        }
+        body.lang-en .zh-only {
+            display: none;
+        }
+        body.lang-zh .en-only {
+            display: none;
+        }
+        .inline-code {
+            background: #eef2f5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        .badge-enum {
+            background: #e9ecef;
+            border-radius: 16px;
+            padding: 0.1rem 0.5rem;
+            font-size: 0.75rem;
+            font-family: monospace;
+        }
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #6c86a3;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 1.5rem;
+        }
+        @media (max-width: 720px) {
+            .container {
+                padding: 1.2rem;
+            }
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body class="lang-en">
+<div class="container">
+    <div class="header">
+        <div class="title-section">
+            <h1>📡 Local API Document</h1>
+            <p>Local HTTP interface for task management & data retrieval</p>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="base-url">🔗 <span id="baseUrlDisplay">http://127.0.0.1:52738/api</span></div>
+            <div class="lang-switch"  style="display:;">
+                <button class="lang-btn active" data-lang="en">🇬🇧 EN</button>
+                <button class="lang-btn" data-lang="zh">🇨🇳 中文</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Common response format -->
+    <div class="api-section" style="background: #fafdff;">
+        <div class="section-header">
+            <div class="function-name">📦 Universal Response Format</div>
+        </div>
+        <div class="content">
+            <div class="en-only">
+                <p>All endpoints return a JSON structure defined by <code>ResultInfo</code> class. The actual payload is inside <code>Data</code> field as a JSON string.</p>
+            </div>
+            <div class="zh-only">
+                <p>所有接口均返回 <code>ResultInfo</code> 类定义的 JSON 结构。业务数据位于 <code>Data</code> 字段内（JSON 字符串）。</p>
+            </div>
+            <pre><code>{
+  "Success": boolean,
+  "Data": string,       // JSON serialized result
+  "Error": string | null
+}</code></pre>
+            <div class="footnote en-only">✔️ Always parse <code>Data</code> with <code>JSON.parse()</code> to access inner objects/arrays.</div>
+            <div class="footnote zh-only">✔️ 请使用 <code>JSON.parse()</code> 解析 <code>Data</code> 字段以获取实际对象或数组。</div>
+        </div>
+    </div>
+
+    <!-- 1. task/list -获取任务列表 -->
+    <div class="api-section">
+        <div class="section-header">
+            <div class="function-name en-only">📋 1. Get all tasks</div>
+            <div class="function-name zh-only">📋 1. 获取所有任务列表</div>
+            <div class="endpoint">/task/list</div>
+            <div class="method-badge">POST</div>
+        </div>
+        <div class="content">
+            <div class="en-only">
+                <p>Retrieve every task registered in the system. Response <code>Data</code> contains JSON array of <code>TaskInfo</code> objects.</p>
+            </div>
+            <div class="zh-only">
+                <p>获取系统中所有已注册任务。<code>Data</code> 字段返回 <code>TaskInfo</code> 对象的 JSON 数组字符串。</p>
+            </div>
+            <h3>📥 Request (empty object)</h3>
+            <pre><code>{}</code></pre>
+            <h3>📤 Response Example (Success)</h3>
+            <div class="example-response">
+                <pre><code>{
+  "Success": true,
+  "Data": "[{\"TaskID\":\"T1775716725005\",\"TaskName\":\"fb_searchbykeywords_20260430\",\"TaskDescription\":\"Scrape FB keywords\",\"TaskLastRunTime\":\"2026-04-30T10:00:00\",\"TaskType\":1,\"Platform\":2,\"CollectType\":0}]",
+  "Error": null
+}</code></pre>
+            </div>
+            <h3>🧪 cURL Example</h3>
+            <pre><code>curl -X POST http://127.0.0.1:52738/api/task/list \
+  -H "Content-Type: application/json" \
+  -d '{}'</code></pre>
+            <div class="footnote en-only">📘 <strong>TaskInfo fields</strong>: TaskID, TaskName, TaskDescription, TaskLastRunTime (ISO datetime), TaskType (int), Platform (int), CollectType (int).</div>
+            <div class="footnote zh-only">📘 <strong>TaskInfo 字段</strong>：TaskID， TaskName， TaskDescription， TaskLastRunTime（ISO 时间），TaskType（整型），Platform（整型），CollectType（整型）。</div>
+        </div>
+    </div>
+
+    <!-- 2. task/list 复制任务 -->
+    <div class="api-section">
+        <div class="section-header">
+            <div class="function-name en-only">📎 2. Copy task</div>
+            <div class="function-name zh-only">📎 2. 复制任务</div>
+            <div class="endpoint">/task/list</div>
+            <div class="method-badge">POST</div>
+        </div>
+        <div class="content">
+            <div class="en-only"><p>Create a new task by duplicating an existing one. Returns the new task ID.</p></div>
+            <div class="zh-only"><p>通过复制已有任务来创建新任务。返回新任务 ID。</p></div>
+            <h3>📥 Request Parameters</h3>
+            <table class="param-table">
+                <tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                <tr><td><code>taskId</code></td><td>string</td><td>Yes</td><td class="en-only">Original task ID</td><td class="zh-only">原始任务ID</td></tr>
+                <tr><td><code>taskName</code></td><td>string</td><td>Yes</td><td class="en-only">New task name</td><td class="zh-only">新任务名称</td></tr>
+                <tr><td><code>parameter</code></td><td>string</td><td>Yes</td><td class="en-only">Custom parameter (e.g., "ai")</td><td class="zh-only">自定义参数（例如 "ai"）</td></tr>
+            </table>
+            <pre><code>{
+  "taskId": "T1775716725005",
+  "taskName": "fb_searchbykeywords_20260430",
+  "parameter": "ai"
+}</code></pre>
+            <h3>📤 Response Example (Success)</h3>
+            <pre><code>{
+  "Success": true,
+  "Data": "T1775716725123",
+  "Error": null
+}</code></pre>
+            <h3>🧪 cURL Example</h3>
+            <pre><code>curl -X POST http://127.0.0.1:52738/api/task/list \
+  -H "Content-Type: application/json" \
+  -d '{"taskId":"T1775716725005","taskName":"cloned_task_01","parameter":"ai"}'</code></pre>
+        </div>
+    </div>
+
+    <!-- 3. task/list 操作任务 (获取状态/运行/停止) -->
+    <div class="api-section">
+        <div class="section-header">
+            <div class="function-name en-only">⚙️ 3. Operate task (status / run / stop)</div>
+            <div class="function-name zh-only">⚙️ 3. 操作任务（获取状态/运行/停止）</div>
+            <div class="endpoint">/task/list</div>
+            <div class="method-badge">POST</div>
+        </div>
+        <div class="content">
+            <div class="en-only"><p>Perform operations using integer <code>operate</code> based on <strong>TaskOpeareteType</strong>.</p></div>
+            <div class="zh-only"><p>使用整数 <code>operate</code>（基于 <strong>TaskOpeareteType</strong> 枚举）执行操作。</p></div>
+            <table class="param-table">
+                <tr><th>Parameter</th><th>Type</th><th>Description</th></tr>
+                <tr><td><code>taskId</code></td><td>string</td><td class="en-only">Target task ID</td><td class="zh-only">目标任务ID</td></tr>
+                <tr><td><code>operate</code></td><td>int</td><td class="en-only">0 = GetStatus, 1 = RunTask, 2 = StopTask</td><td class="zh-only">0 = 获取状态, 1 = 运行任务, 2 = 停止任务</td></tr>
+            </table>
+            <pre><code>{
+  "taskId": "T1777536544335",
+  "operate": 0
+}</code></pre>
+            <h3 class="en-only">📤 Responses</h3>
+            <h3 class="zh-only">📤 响应说明</h3>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                <li class="en-only"><strong>operate = 0 (GetStatus)</strong> → <code>Data</code> returns task state: <code>NotRun</code>, <code>Completed</code>, <code>Waiting</code>, <code>Running</code>, <code>Stopped</code>.</li>
+                <li class="zh-only"><strong>operate = 0 (获取状态)</strong> → <code>Data</code> 返回任务状态字符串：NotRun, Completed, Waiting, Running, Stopped。</li>
+                <li class="en-only"><strong>operate = 1 or 2 (RunTask / StopTask)</strong> → <code>Data</code> returns <code>"1"</code> on success.</li>
+                <li class="zh-only"><strong>operate = 1 或 2 (运行/停止)</strong> → 成功时 <code>Data</code> 返回 <code>"1"</code>。</li>
+            </ul>
+            <h3>✅ GetStatus response example</h3>
+            <pre><code>{
+  "Success": true,
+  "Data": "Running",
+  "Error": null
+}</code></pre>
+            <h3>▶️ RunTask response example</h3>
+            <pre><code>{
+  "Success": true,
+  "Data": "1",
+  "Error": null
+}</code></pre>
+            <h3>🧪 cURL Example (GetStatus)</h3>
+            <pre><code>curl -X POST http://127.0.0.1:52738/api/task/list \
+  -H "Content-Type: application/json" \
+  -d '{"taskId":"T1777536544335","operate":0}'</code></pre>
+            <div class="footnote en-only">💡 Change <code>operate</code> to 1 (run) or 2 (stop) for start/stop actions.</div>
+            <div class="footnote zh-only">💡 将 <code>operate</code> 改为 1（运行）或 2（停止）可执行对应操作。</div>
+        </div>
+    </div>
+
+    <!-- 4. task/getresult 获取任务结果 -->
+    <div class="api-section">
+        <div class="section-header">
+            <div class="function-name en-only">📄 4. Fetch task results</div>
+            <div class="function-name zh-only">📄 4. 获取任务执行结果</div>
+            <div class="endpoint">/task/getresult</div>
+            <div class="method-badge">POST</div>
+        </div>
+        <div class="content">
+            <div class="en-only"><p>Retrieve incremental results of a completed/running task. Supports filtering by <code>startTime</code> (ISO 8601) or <code>startId</code> (record id).</p></div>
+            <div class="zh-only"><p>获取已完成或运行中任务的增量结果。支持按 <code>startTime</code>（ISO 8601）或 <code>startId</code>（记录ID）筛选。</p></div>
+            <table class="param-table">
+                <tr><th>Field</th><th>Type</th><th>Required</th><th class="en-only">Description</th><th class="zh-only">说明</th></tr>
+                <tr><td><code>taskId</code></td><td>string</td><td>Yes</td><td class="en-only">Task identifier</td><td class="zh-only">任务ID</td></tr>
+                <tr><td><code>startTime</code></td><td>string (ISO) or null</td><td>No</td><td class="en-only">Fetch results after this timestamp</td><td class="zh-only">获取此时间之后的结果</td></tr>
+                <tr><td><code>startId</code></td><td>int</td><td>No</td><td class="en-only">Fetch results after this record ID</td><td class="zh-only">获取此ID之后的结果</td></tr>
+            </table>
+            <pre><code>{
+  "taskId": "T1777536544335",
+  "startTime": null,
+  "startId": 0
+}</code></pre>
+            <h3>📤 Response Example</h3>
+            <div class="example-response">
+                <pre><code>{
+  "Success": true,
+  "Data": "[{\"Id\":101,\"Content\":\"sample post text\",\"Author\":\"user123\"},{\"Id\":102,\"Content\":\"another result\"}]",
+  "Error": null
+}</code></pre>
+            </div>
+            <div class="en-only"><p><strong>Note:</strong> The actual type inside the array depends on the task type: <code>ContentInfo[]</code>, <code>PostInfo[]</code> or <code>UserInfo[]</code>. Use the provided fields accordingly.</p></div>
+            <div class="zh-only"><p><strong>注意：</strong> 数组内实际类型取决于任务类型：可能是 <code>ContentInfo[]</code>、<code>PostInfo[]</code> 或 <code>UserInfo[]</code>，请按实际情况处理。</p></div>
+            <h3>🧪 cURL Example</h3>
+            <pre><code>curl -X POST http://127.0.0.1:52738/api/task/getresult \
+  -H "Content-Type: application/json" \
+  -d '{"taskId":"T1777536544335","startTime":null,"startId":0}'</code></pre>
+            <div class="footnote en-only">📌 To fetch after a specific time: <code>"startTime": "2026-05-01T00:00:00"</code></div>
+            <div class="footnote zh-only">📌 如需获取指定时间之后的结果，传递 <code>"startTime": "2026-05-01T00:00:00"</code></div>
+        </div>
+    </div>
+
+    <!-- Appendix: Enumerations & Data structures -->
+    <div class="api-section">
+        <div class="section-header">
+            <div class="function-name en-only">📚 Appendix: Enumerations & Data Models</div>
+            <div class="function-name zh-only">📚 附录：枚举定义与数据模型</div>
+        </div>
+        <div class="content">
+            <h3>🔁 TaskOpeareteType</h3>
+            <table class="param-table">
+                <tr><th>Value</th><th>Name</th><th class="en-only">Operation</th><th class="zh-only">操作</th></tr>
+                <tr><td>0</td><td>GetStatus</td><td class="en-only">Retrieve current task state</td><td class="zh-only">获取当前任务状态</td></tr>
+                <tr><td>1</td><td>RunTask</td><td class="en-only">Start / resume task</td><td class="zh-only">启动任务</td></tr>
+                <tr><td>2</td><td>StopTask</td><td class="en-only">Stop running task</td><td class="zh-only">停止任务</td></tr>
+            </table>
+            <h3>📦 TaskInfo Structure Reference</h3>
+            <table class="param-table">
+                <tr><th>Field</th><th>Type</th><th class="en-only">Description</th><th class="zh-only">描述</th></tr>
+                <tr><td>TaskID</td><td>string</td><td colspan="2">Unique task identifier</td></tr>
+                <tr><td>TaskName</td><td>string</td><td colspan="2">Task name</td></tr>
+                <tr><td>TaskDescription</td><td>string</td><td colspan="2">Description</td></tr>
+                <tr><td>TaskLastRunTime</td><td>DateTime (ISO)</td><td colspan="2">Last execution timestamp</td></tr>
+                <tr><td>TaskType</td><td>TaskTypeEnum (int)</td><td colspan="2">Task type code</td></tr>
+                <tr><td>Platform</td><td>AccountSiteEnum (int)</td><td colspan="2">Platform identifier</td></tr>
+                <tr><td>CollectType</td><td>CollectTypeEnum (int)</td><td colspan="2">Collection method</td></tr>
+            </table>
+            <h3 class="en-only">⚠️ Error Response Example</h3>
+            <h3 class="zh-only">⚠️ 错误响应示例</h3>
+            <pre><code>{
+  "Success": false,
+  "Data": null,
+  "Error": "Task not found or invalid operation"
+}</code></pre>
+            <div class="footnote en-only">All endpoints return HTTP 200 with the above wrapper; examine <code>Success</code> flag to detect errors.</div>
+            <div class="footnote zh-only">所有接口均返回 HTTP 200 状态码及上述包装结构，请检查 <code>Success</code> 字段判断业务是否成功。</div>
+        </div>
+    </div>
+    <footer>
+        <span class="en-only">🔌 Local API · Base URL: http://127.0.0.1:52738/api | Content-Type: application/json</span>
+        <span class="zh-only">🔌 本地 API · 基础地址: http://127.0.0.1:52738/api | 请求类型: POST, JSON</span>
+    </footer>
+</div>
+<script>
+    (function() {
+        const langBtns = document.querySelectorAll('.lang-btn');
+        const setLanguage = (lang) => {
+            document.body.classList.remove('lang-en', 'lang-zh');
+            document.body.classList.add(`lang-${lang}`);
+            langBtns.forEach(btn => {
+                if (btn.getAttribute('data-lang') === lang) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            localStorage.setItem('api_doc_lang', lang);
+        };
+        langBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const lang = btn.getAttribute('data-lang');
+                if (lang === 'en' || lang === 'zh') setLanguage(lang);
+            });
+        });
+        const savedLang = localStorage.getItem('api_doc_lang');
+        if (savedLang === 'zh') setLanguage('zh');
+        else setLanguage('en');
+    })();
+</script>
+</body>
+</html>
